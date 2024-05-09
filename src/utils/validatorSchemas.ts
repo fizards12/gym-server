@@ -19,7 +19,7 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
             errorMessage: NameErrors.InvalidValueError,
             bail: true
         },
-        
+
         matches: {
             options: /^[a-zA-Z\s]+$/,
             errorMessage: NameErrors.InvalidValueError,
@@ -107,11 +107,10 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
                 max: 30
             },
             errorMessage: PasswordErrors.LengthError,
-            bail: true
         },
         custom: {
             options: (value, { req }) => {
-                const errors = [];
+                const errors : string[] = [];
                 if (!/[a-z]/.test(value)) {
                     errors.push(PasswordErrors.SmallLetterError);
                 }
@@ -124,8 +123,12 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
                 if (!/[a-zA-Z0-9]/.test(value)) {
                     errors.push(PasswordErrors.AlphanumericError);
                 }
+                if (errors.length === 0) {
+                    return true;
+                } 
                 throw errors;
             },
+            bail: true
         }
     },
     role: {
@@ -162,7 +165,17 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
                 level: "request"
             }
         },
-    }
+    },
+    activated: {
+        optional: true,
+        exists: {
+            negated: true,
+            errorMessage: "Enter Valid Credentials",
+            bail: {
+                level: "request"
+            }
+        },
+    },
 }
 
 

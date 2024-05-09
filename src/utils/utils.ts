@@ -1,4 +1,5 @@
-import User from "../model/users";
+import { Model } from "mongoose";
+import User, { UserDocument, UserInterface } from "../model/users";
 
 function generateRandomNumber(): number {
     return Math.floor(100000 + Math.random() * 900000); // Generates a random number between 100000 and 999999
@@ -18,8 +19,9 @@ export async function generateUniqueUserId(): Promise<number> {
     }
 }
 
-export function uniquenessValidator<T>(property: T, propertyName: string): boolean {
-    const user = User.findOne({ [propertyName]: property });
+export async function uniquenessValidator<T>(properties:UserInterface): Promise<boolean> {
+    const user: UserDocument = await User.findOne<UserDocument>(properties) as UserDocument;
+
     return !user;
 }
 

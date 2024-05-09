@@ -1,20 +1,23 @@
-import { Schema, default as mongoose, Types, SchemaDefinition, SchemaDefinitionProperty, SchemaTypeOptions } from "mongoose";
+import mongoose ,{ Model, Schema } from "mongoose";
 import { EmailErrors, PasswordErrors, RoleErrors, UsernameErrors } from "../utils/constants";
 import { uniquenessValidator } from "../utils/utils";
+import { Document } from "mongoose";
 export interface UserInterface {
-    name: string,
-    username: string,
-    email: string,
-    password: string,
+    name?: string,
+    username?: string,
+    email?: string,
+    password?: string,
+    activated?: boolean,
     refreshToken?: string,
-    role: string,
-    member_id: string | number,
+    role?: string,
+    member_id?: string | number,
 
 }
 export type UserKeys = keyof UserInterface;
 
+export interface UserDocument extends Document,UserInterface {};
 
-const userSchema = new Schema<UserInterface>({
+const userSchema = new Schema<UserDocument>({
     name: {
         type: String,
         required: [true, "please Enter your full name."],
@@ -31,8 +34,8 @@ const userSchema = new Schema<UserInterface>({
         ],
         unique: true,
         validate: {
-            validator: (username: string): boolean => {
-                const isValid = uniquenessValidator(username, "username")
+            validator: async(username: string): Promise<boolean> => {
+                const isValid : boolean = await uniquenessValidator({username})
                 return isValid;
             },
             message: UsernameErrors.UniquenessError
@@ -43,12 +46,12 @@ const userSchema = new Schema<UserInterface>({
         required: [true, EmailErrors.NotExistError],
         unique: true,
         validate: {
-            validator: function (email: string): boolean {
+            validator: async function (email: string): Promise<boolean> {
                 var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
                 if (!re.test(email)) {
                     return false;
                 }
-                const isValid: boolean = uniquenessValidator(email, "email");
+                const isValid: boolean = await uniquenessValidator({email});
                 return isValid;
             },
             message: EmailErrors.InvalidValueError
@@ -58,8 +61,13 @@ const userSchema = new Schema<UserInterface>({
         type: String,
         required: [true, PasswordErrors.NotExistError],
     },
+    activated:{
+        type: Boolean,
+        default: false
+    },
     refreshToken: {
         type: String,
+        default: ""
     },
     role: {
         type: String,
@@ -76,11 +84,12 @@ const userSchema = new Schema<UserInterface>({
 userSchema.set("toObject", {
     transform: (doc, ret) => {
         ret.id = doc._id.toString();
+        ret = {...doc}
         delete ret._id;
         delete ret.__v;
     },
 });
 
-const User = mongoose.model("User", userSchema);
+const User : Model<UserDocument> = mongoose.model<UserDocument>("User", userSchema) as Model<UserDocument>;
 
 export default User;
