@@ -6,13 +6,20 @@ import { Result, validationResult } from "express-validator";
 import { generateUniqueUserId, uniquenessValidator } from "../utils/utils";
 import transporter from "../utils/emailTransport";
 import { Types } from "mongoose";
+import { ValidationError } from "../utils/errorTypes";
 const saltRounds: number = +(process.env.SALTS_ROUNDS as unknown as number);
 export const registerHandler = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     // Validate request data formats.
     const result: Result = validationResult(req);
     if (!result.isEmpty()) {
         return res.status(400).json({
-            errors: result.formatWith(err => err.msg)
+            errors: result.formatWith(err => {
+                const error : ValidationError = {
+                    name: err.type,
+                    message: err.msg,
+                } 
+                return error
+            })
                 .mapped()
         });
     }
@@ -71,7 +78,12 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
         // Validate Request Data format.
         const result: Result = validationResult(req);
         if (!result.isEmpty()) {
-            return res.status(400).json({ errors: result.formatWith(err => err.msg).array() });
+            return res.status(400).json({ errors: result.formatWith(err => {
+                const error : ValidationError = {
+                    name: err.type,
+                    message: err.msg,
+                } 
+            }).mapped() });
         }
 
         // Validate Login Credentials
@@ -129,19 +141,18 @@ export const deleteUserHandler = async (req: Request, res: Response, next: NextF
 export const accessTokenGeneratorHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        const userId = req.body.id;
-        const id = new Types.ObjectId(userId);
-        const user: UserDocument = await User.findById<UserDocument>(id) as UserDocument;
+        const member_id = req.body.id;
+        const user: UserDocument = await User.findOne<UserDocument>({member_id}) as UserDocument;
         if (!user.refreshToken) {
             return res.sendStatus(403);
         }
-        const token = generateAccessToken(userId, user.refreshToken);
+        const token = generateAccessToken(member_id, user.refreshToken);
         if (!token) {
             user.refreshToken = "";
             await user.save();
             return res.sendStatus(401);
         }
-        return res.status(201).send({ userId, token })
+        return res.status(201).send({ member_id, token })
     } catch (error: any) {
         if (error.name === "TokenExpiredError") {
             return res.status(401);
