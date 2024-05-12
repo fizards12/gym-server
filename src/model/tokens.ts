@@ -1,21 +1,20 @@
-import mongoose, { Schema, Types } from "mongoose"
-
+import mongoose, { Schema } from "mongoose";
 export interface TokenInterface {
-    userId: string | undefined,
-    token:string
+    token_id: string | undefined,
+    token: string
 }
 
 const tokenSchema = new Schema<TokenInterface>({
-    userId: {
-        type: Types.ObjectId,
-        ref: "User",
-        required: true,
-        unique: true
-    },
-    token:{
+    token_id: {
         type: String,
         required: true,
-        unique:true
+        unique: true,
+        index: true,
+    },
+    token: {
+        type: String,
+        required: true,
+        unique: true
     }
 })
 

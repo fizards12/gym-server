@@ -1,89 +1,92 @@
 import jwt, {
-    JsonWebTokenError,
-    Jwt,
     JwtPayload,
     Secret,
-    SignOptions,
-    TokenExpiredError,
+    VerifyCallback,
+    VerifyErrors,
     VerifyOptions,
 } from "jsonwebtoken";
-import { Types } from "mongoose";
-import { TokenError } from "./errorTypes";
-
-const refreshSecret: Secret = process.env.TOKEN_SECRET as string;
-const accessSecret: Secret = process.env.TOKEN_SECRET as string;
-
+import { Err } from "./errorTypes";
+import { Errors } from "./constants";
+import { accessSecret, jweKey, refreshSecret } from "./env";
+import { encryptJWT } from "./utils";
 type Token = string;
-
-interface TokenPayload extends JwtPayload {
+export interface TokenPayload extends JwtPayload {
     id?: string;
-    member_id?: string;
     email?: string;
     decodedPassword?: string;
     role?: string;
 }
 
-export const verifyToken = async (token: Token, tokenType: string, options?: VerifyOptions): Promise<TokenPayload | never> => {
-    const secret: Secret = tokenType === "refresh" ? refreshSecret :
-        tokenType === "access" ? accessSecret : "";
+
+//Tracking any errors while JWT Token verification.
+export const verifyJWT = (token: string, secret: Secret, options?: VerifyOptions): Promise<TokenPayload> => {
+    return new Promise<JwtPayload>((resolve, reject) => {
+        jwt.verify(token, secret, options, (error, decoded) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(decoded as TokenPayload);
+            }
+        })
+    })
+}
+
+export const verifyToken = async (token: Token, secret: Secret, options?: VerifyOptions,callback?:(error: VerifyErrors)=>void): Promise<TokenPayload> => {
     try {
+        //Throw error if secret is empty
         if (!secret) {
-            const error: TokenError = {
-                name: "TokenTypeError",
-                "token-type": tokenType,
+            throw {
+                name: Errors.TOKEN_TYPE_ERROR,
                 message: "Token Type not selected."
             };
-            throw error
         }
-        const payload: TokenPayload = jwt.verify(token, secret, options) as TokenPayload;
+
+        //Check token validation
+        const payload = await verifyJWT(token, secret, options);
         return payload;
     } catch (error: any) {
-        const err : TokenError = {
+        callback && callback(error);
+        throw {
             name: error.name,
-            "token-type": tokenType,
             message: error.message
         };
-        throw err
     }
 };
 
-export const verifyAccessTokenByRefreshToken = (
-    accessToken: Token,
-    refreshToken: Token
-) => {
-    const refreshPayload: TokenPayload = verifyToken(
-        refreshToken,
-        "refresh"
-    ) as TokenPayload;
-    const accessPayload: TokenPayload = verifyToken(accessToken, "access", {
-        issuer: refreshPayload.iss,
-        audience: refreshPayload.aud,
-    }) as TokenPayload;
-};
+export const generateAccessToken = async (id: string, refreshToken: Token): Promise<Token | never> => {
+    try {
+        //verify Refresh Token
+        const payload = await verifyJWT(refreshToken, refreshSecret);
 
-export const generateAccessToken = (
-    userId: string,
-    refreshToken: Token
-): Token | never => {
-    const payload: TokenPayload = jwt.verify(
-        refreshToken,
-        refreshSecret
-    ) as TokenPayload;
-    if (payload.member_id === userId) {
-        const accessPayload: TokenPayload = {
-            member_id: payload.member_id,
-            role: payload.role,
-        };
-        const token: Token = jwt.sign(accessPayload, accessSecret, {
-            expiresIn: "24h",
-        });
-        return token;
-    } else {
-        throw new Error("Wrong Credentials");
+        //Check the 6-digits user id with the encoded in the refresh token 
+        if (payload.id === id) {
+            const accessPayload: TokenPayload = {
+                id: payload.member_id,
+                role: payload.role,
+            };
+            //Generate new access token
+            const token: Token = jwt.sign(accessPayload, accessSecret, { expiresIn: "30m" });
+
+            //Encrypt the access token
+            const jweToken = await encryptJWT(token, jweKey);
+            return jweToken;
+        } else {
+            //throw wrong credentials error
+            const error: Err = {
+                name: Errors.CREDENTIALS_ERROR,
+                message: "Wrong Credentials"
+            }
+            throw error;
+        }
+    } catch (error: any) {
+        throw error;
     }
 };
 
-export const generateRefreshToken = (payload: TokenPayload): Token => {
-    const token: string = jwt.sign(payload, refreshSecret);
-    return token;
+
+//Function to generate new refresh token
+export const generateRefreshToken = async (payload: TokenPayload): Promise<Token> => {
+    const token: string = jwt.sign(payload, refreshSecret, { expiresIn: "24h" });
+    const jweToken = await encryptJWT(token, jweKey);
+    return jweToken;
 };

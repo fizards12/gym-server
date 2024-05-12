@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import http, { Server } from "http"
 import cors from "cors";
 import usersRouter from "./routes/usersRouter"
+import cookieParser from "cookie-parser"
 const port: number = (process.env.PORT as unknown) as number;
 const app: Application = express();
 const server: Server = http.createServer(app)
@@ -12,7 +13,7 @@ const databaseURI: string = process.env.MONGODB_URI as unknown as string;
 
 app.use(cors({ origin: "*" }))
 app.use(express.json());
-
+app.use(cookieParser());
 mongoose.set("strictQuery", true);
 mongoose
     .connect(

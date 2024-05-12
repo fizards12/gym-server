@@ -1,11 +1,18 @@
-enum Errors{
+export enum Errors {
+    TOKEN_EXPIRATION_ERROR = "TokenExpirationError",
+    TOKEN_TYPE_ERROR = "TokenTypeError",
+    TOKEN_ERROR = "TokenError",
+    CREDENTIALS_ERROR = "CredentialsError"
+}
+
+enum ValidationErrors{
     NotExistError = " value is required.",
     InvalidValueError = " value is invalid.",
     UniquenessError = " must be unique"
 }
 export enum PasswordErrors {
-    InvalidValueError = "Password" + Errors.InvalidValueError ,
-    NotExistError= "Password" + Errors.NotExistError,
+    InvalidValueError = "Password" + ValidationErrors.InvalidValueError ,
+    NotExistError= "Password" + ValidationErrors.NotExistError,
     LengthError = "Password length must be in range [12-30] character.",
     SmallLetterError = "Must contain at least one small letter.",
     CapitalLetterError = "Must contain at least one capital letter.",
@@ -15,23 +22,23 @@ export enum PasswordErrors {
 
 
 export enum NameErrors {
-    InvalidValueError = "Name" + Errors.InvalidValueError ,
-    NotExistError= "Name" + Errors.NotExistError,
+    InvalidValueError = "Name" + ValidationErrors.InvalidValueError ,
+    NotExistError= "Name" + ValidationErrors.NotExistError,
     LengthError = "Name length must be in range [6-50] character.",
 }
 export enum UsernameErrors {
-    InvalidValueError = "Username" + Errors.InvalidValueError ,
-    NotExistError= "Username" + Errors.NotExistError,
+    InvalidValueError = "Username" + ValidationErrors.InvalidValueError ,
+    NotExistError= "Username" + ValidationErrors.NotExistError,
     LengthError = "Username length must be in range [6-20] character.",
     FirstLetterError = "Username must begin with alphabet character.",
-    UniquenessError = "Username" + Errors.UniquenessError
+    UniquenessError = "Username" + ValidationErrors.UniquenessError
 }
 export enum EmailErrors {
-    InvalidValueError = "Email" + Errors.InvalidValueError ,
-    NotExistError= "Email" + Errors.NotExistError,
-    UniquenessError = "Email" + Errors.UniquenessError
+    InvalidValueError = "Email" + ValidationErrors.InvalidValueError ,
+    NotExistError= "Email" + ValidationErrors.NotExistError,
+    UniquenessError = "Email" + ValidationErrors.UniquenessError
 }
 export enum RoleErrors {
-    InvalidValueError = "Role" + Errors.InvalidValueError ,
-    NotExistError= "Role" + Errors.NotExistError,
+    InvalidValueError = "Role" + ValidationErrors.InvalidValueError ,
+    NotExistError= "Role" + ValidationErrors.NotExistError,
 }
