@@ -1,6 +1,6 @@
 import { CustomValidator, ParamSchema, Schema, body } from "express-validator";
 import User, { UserKeys } from "../model/users";
-import { EmailErrors, NameErrors, PasswordErrors, RoleErrors, UsernameErrors } from "./constants";
+import { EmailErrors, NameErrors, PasswordErrors, RoleErrors, UsernameErrors } from "./errorTypes";
 
 const userValidatorSchema: Record<UserKeys, ParamSchema> = {
     name: {
@@ -146,16 +146,6 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
             errorMessage: RoleErrors.InvalidValueError,
         },
     },
-    refreshToken: {
-        exists: {
-            negated: true,
-            errorMessage: "Enter Valid Credentials",
-            bail: {
-                level: "request"
-            }
-        },
-        optional: true
-    },
     member_id: {
         optional: true,
         exists: {
@@ -178,5 +168,14 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
     },
 }
 
+export const loginValidationSchema: Record<UserKeys,ParamSchema> = {
+    email: userValidatorSchema.email,
+    password: userValidatorSchema.password,
+    name: {},
+    username: {},
+    activated: {},
+    role: {},
+    member_id: {}
+}
 
 export { userValidatorSchema }

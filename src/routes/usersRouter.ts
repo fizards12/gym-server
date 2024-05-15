@@ -1,23 +1,18 @@
-import { Router} from "express"
-import { accessTokenGeneratorHandler, loginHandler, registerHandler, sendMail } from "../routeshandlers/usersHandler";
-import { ParamSchema, checkSchema } from "express-validator";
+import { Router } from "express"
+import { deleteHandler, getAll, getUser, registerHandler } from "../routeshandlers/usersHandler";
+import { checkSchema, header, param } from "express-validator";
 import { userValidatorSchema } from "../utils/validatorSchemas";
-import { UserKeys } from "../model/users";
-const router : Router = Router();
+import { authMiddleware } from "../middleware/auth";
+import { ADMIN_ROLES } from "../utils/constants";
+const router: Router = Router();
 
-const loginValidationSchema: Record<UserKeys,ParamSchema> = {
-    email: userValidatorSchema.email,
-    password: userValidatorSchema.password,
-    name: {},
-    username: {},
-    activated: {},
-    refreshToken: {},
-    role: {},
-    member_id: {}
-}
-router.post("/register",checkSchema(userValidatorSchema),registerHandler)
-router.post("/login",checkSchema(loginValidationSchema),loginHandler);
-router.post("/token",accessTokenGeneratorHandler);
+router.get("/all", authMiddleware([ADMIN_ROLES.ADMIN, ADMIN_ROLES.CO_ADMIN]), getAll);
+router.get("/:id",
+param("id").exists().bail().trim().notEmpty().withMessage("Enter valid user id."),
+header("authorization").exists().bail().trim().notEmpty().withMessage("Authorization header Not Set."),
+authMiddleware([ADMIN_ROLES.ADMIN, ADMIN_ROLES.CO_ADMIN, "user"]), getUser);
+router.post("/register", checkSchema(userValidatorSchema), registerHandler);
+router.delete("/:id", authMiddleware([ADMIN_ROLES.ADMIN, ADMIN_ROLES.CO_ADMIN,"user"]), deleteHandler);
 
 
 export default router;

@@ -1,55 +1,105 @@
 import { JWE, JWK } from "node-jose";
 import User, { UserDocument, UserInterface } from "../model/users";
-import { format } from "path";
+import transporter from "./emailTransport";
+import { Errors } from "./errorTypes";
+
+
 function generateRandomNumber(): number {
     return Math.floor(100000 + Math.random() * 900000); // Generates a random number between 100000 and 999999
 }
 
 export async function generateUniqueUserId(): Promise<number> {
-    try {
-        let uniqueId = generateRandomNumber();
-        const user = await User.findOne({ member_id: uniqueId })
-        while (user) {
-            uniqueId = generateRandomNumber();
-            const user = await User.findOne({ member_id: uniqueId })
-        }
-        return uniqueId;
-    } catch (error: unknown) {
-        throw error;
+    let uniqueId = generateRandomNumber();
+    let user = await User.findOne({ member_id: uniqueId })
+    while (user) {
+        uniqueId = generateRandomNumber();
+        user = await User.findOne({ member_id: uniqueId })
     }
+    return uniqueId;
 }
 
 export async function uniquenessValidator<T>(properties: UserInterface): Promise<boolean> {
     const user: UserDocument = await User.findOne<UserDocument>(properties) as UserDocument;
-
     return !user;
 }
 
-export async function encryptJWT(token: string, key: string): Promise<string| never> {
+
+
+export const sendMail = async (reciever: UserInterface, id: string) => {
     try {
 
-        const encryptedKey = await JWK.asKey(key);
-        const jwe : string = await JWE.createEncrypt({ format: "compact" }, encryptedKey)
-            .update(token)
-            .final();
-        return jwe;
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }
+        const { email, name } = reciever;
+        const url = `http://localhost:3000/api/auth/activate/${id}`;
 
+        const { messageId } = await transporter.sendMail({
+            from: "mahmoudsameh734@outlook.com",
+            to: email,
+            subject: "Activation mail",
+            html: `
+            <!DOCTYPE html>
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Document</title>
+                        <style>
+                            body{
+                                background-color: #14151a;
+                            }
+                            main {
+                                background-color: #14151a;
+                                color: white;
+                                height: 100vh;
+                            }
+                        
+                            .header {
+                                background-color: #191b2a;
+                                padding: 10px 0px;
+                            }
+                        
+                            .header h1 {
+                                text-align: center;
+                                text-transform: uppercase;
+                                font-family: Arial, sans-serif;
+                                color: orange;
+                            }
+                        
+                            .content {
+                                gap: 10px;
+                                padding: 10px;
+                                margin-top: 50px;
+                            }
+                        </style>
+                </head>
+    
+                <body style="margin:0;">
+                    <main>
+                        <div class="header">
+                            <h1>Welcome to Gem-Gym</h1>
+                        </div>
+                        <div class="content">
+                            <h2>Hello, ${name}</h2>
+                            <p>Your account has been registered successfully.</p>
+                            <div>To activate your account please click here:
+                                <a style="color:rgb(122, 160, 207);text-decoration:none;" href="${url}">Activate me</a>.
+                            </div>
+                        </div>
+                    </main>
+                </body>`
+        })
+        return messageId;
+    } catch (error: any) {
+        if (error.code === "EENVELOPE") {
+            throw {
+                name: Errors.MAIL_FAILURE_ERROR,
+                type: "invalid-recipient"
+            }
+        }
+        return {
+            name : Errors.MAIL_FAILURE_ERROR,
+            type: error.code
+        }
+    }
 }
 
-export async function decryptJWT(encryptedToken: string, key: string): Promise<string| never> {
-    try {
 
-        const decryptedKey = await JWK.asKey(key);
-        const jwt : string = await JWE.createDecrypt(decryptedKey,{format: "compact"})
-            .decrypt(encryptedToken) as unknown as string;
-        return jwt;
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }
-
-}

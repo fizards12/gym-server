@@ -1,20 +1,18 @@
 import mongoose, { Schema } from "mongoose";
 export interface TokenInterface {
-    token_id: string | undefined,
-    token: string
+    token: string,
+    state: "activate" | "blocked"
 }
 
 const tokenSchema = new Schema<TokenInterface>({
-    token_id: {
-        type: String,
-        required: true,
-        unique: true,
-        index: true,
-    },
     token: {
         type: String,
         required: true,
         unique: true
+    },
+    state: {
+        type: String,
+        required: true
     }
 })
 
@@ -26,6 +24,6 @@ tokenSchema.set("toObject", {
     },
 });
 
-const Token = mongoose.model("User", tokenSchema);
+const Token = mongoose.model("Token", tokenSchema);
 
 export default Token;

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        main {
+            background-color: #14151a;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #191b2a;
+            width: 100vw;
+            padding: 10px 0px;
+        }
+
+        .header h1 {
+            text-align: center;
+            text-transform: uppercase;
+            font-family: Arial, sans-serif;
+            color: orange;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+
+<body style="margin:0;">
+    <main>
+        <div class="header">
+            <h1>Welcome to Gem-Gym</h1>
+        </div>
+        <div class="content">
+            <h2>Hello, ${name}</h2>
+            <p>Your account has been registered successfully.</p>
+            <div>To activate your account please click here:
+                <a style="color:rgb(122, 160, 207);text-decoration:none;" href="${url}">Activate me</a>.
+            </div>
+        </div>
+    </main>
+</body>

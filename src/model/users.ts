@@ -1,5 +1,5 @@
 import mongoose ,{ Model, Schema } from "mongoose";
-import { EmailErrors, PasswordErrors, RoleErrors, UsernameErrors } from "../utils/constants";
+import { EmailErrors, PasswordErrors, RoleErrors, UsernameErrors } from "../utils/errorTypes";
 import { uniquenessValidator } from "../utils/utils";
 import { Document } from "mongoose";
 export interface UserInterface {
@@ -8,9 +8,8 @@ export interface UserInterface {
     email?: string,
     password?: string,
     activated?: boolean,
-    refreshToken?: string,
     role?: string,
-    member_id?: string | number,
+    member_id?: number,
 
 }
 export type UserKeys = keyof UserInterface;
@@ -65,16 +64,12 @@ const userSchema = new Schema<UserDocument>({
         type: Boolean,
         default: false
     },
-    refreshToken: {
-        type: String,
-        default: ""
-    },
     role: {
         type: String,
         required: [true, RoleErrors.NotExistError]
     },
     member_id: {
-        type: String,
+        type: Number,
         required: true,
         unique: true,
         immutable: true
@@ -84,7 +79,8 @@ const userSchema = new Schema<UserDocument>({
 userSchema.set("toObject", {
     transform: (doc, ret) => {
         ret.id = doc._id.toString();
-        ret = {...doc}
+        delete ret.username;
+        delete ret.password;
         delete ret._id;
         delete ret.__v;
     },
