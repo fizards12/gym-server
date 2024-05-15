@@ -2,6 +2,7 @@ import { JWE, JWK } from "node-jose";
 import User, { UserDocument, UserInterface } from "../model/users";
 import transporter from "./emailTransport";
 import { Errors } from "./errorTypes";
+import { backendURL } from "./env";
 
 
 function generateRandomNumber(): number {
@@ -29,7 +30,7 @@ export const sendMail = async (reciever: UserInterface, id: string) => {
     try {
 
         const { email, name } = reciever;
-        const url = `http://localhost:3000/api/auth/activate/${id}`;
+        const url = `${backendURL}/api/auth/activate/${id}`;
 
         const { messageId } = await transporter.sendMail({
             from: "mahmoudsameh734@outlook.com",

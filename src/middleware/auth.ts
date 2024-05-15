@@ -30,7 +30,7 @@ export const authMiddleware = (roles: string[]): AuthMiddleware => async functio
             }
         }
         const refreshToken: string = await decryptJWE(encryptedRefreshToken, jweKey)
-        const refreshPayload: TokenPayload = await verifyToken(refreshToken, "refresh")
+        const refreshPayload: TokenPayload = await verifyToken(refreshToken, TOKEN_TYPES.REFRESH)
         const { email, id, role } = refreshPayload;
         if (isTokenExpired(refreshPayload)) {
             throw {
