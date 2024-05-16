@@ -1,9 +1,10 @@
 import { Router } from "express"
-import { activateHandler, loginHandler, reAuthenticateHandler } from "../routeshandlers/authHandler";
+import { activateHandler, loginHandler, logoutHandler, reAuthenticateHandler } from "../routeshandlers/authHandler";
 const router: Router = Router();
 router.post("/login", loginHandler);
 router.get("/auto", reAuthenticateHandler);
 router.get("/activate/:id", activateHandler);
+router.post("/logout",logoutHandler)
 
 
 export default router;

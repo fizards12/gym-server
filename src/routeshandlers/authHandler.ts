@@ -161,7 +161,7 @@ export const activateHandler = async (req: Request, res: Response, next: NextFun
     }
 }
 
-export const logout : RequestHandler = async (req: CustomRequest,res,next)=>{
+export const logoutHandler : RequestHandler = async (req: CustomRequest,res,next)=>{
     try{
         const result: Result = validationResult(req);
         if (!result.isEmpty()) {
