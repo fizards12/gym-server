@@ -1,28 +1,26 @@
-import { Model, Schema, model } from "mongoose";
+import { Model, Schema, Types, model } from "mongoose";
 
 
 export interface NotificationInterface {
     message: string,
-    receivers_role: string[]
+    sender: Types.ObjectId
 }
 
 export type NotificationKeys = keyof NotificationInterface;
 
-export interface NotifyDocument extends Document,NotificationInterface {}
+export interface NotifyDocument extends Document, NotificationInterface { }
 
 const notifySchema = new Schema<NotifyDocument>({
     message: {
         type: String,
-        required: [true,"Notification Message value is required"],
+        required: [true, "Notification Message value is required"],
         unique: true,
     },
-    receivers_role: {
-        type: [{
-            type: String,
-            unique: true
-        }],
-        required: [true,"Select to whom this Notification whill be sent."]
-    }
+    sender: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
 });
 
 notifySchema.set("toObject", {
@@ -33,6 +31,6 @@ notifySchema.set("toObject", {
     },
 });
 
-const Notification: Model<NotifyDocument> = model<NotifyDocument>("Notification",notifySchema) as Model<NotifyDocument>;
+const Notification: Model<NotifyDocument> = model<NotifyDocument>("Notification", notifySchema) as Model<NotifyDocument>;
 
 export default Notification;

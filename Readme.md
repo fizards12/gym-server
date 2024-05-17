@@ -1,7 +1,17 @@
-### Create .ENV and add define those variables on it:
+# Backend server for GYM web application.
+### Description
+
+
+### Environment variables used on the project:
 - PORT
 - SALTS_ROUNDS
-- JWT_SECRET
-- DATABASE_USERNAME
-- DATABASE_PASSWORD
+- ACTIVATION_TOKEN_SECRET
+- JWE_KEY_ACTIVATION
+- JWE_KEY
+- REFRESH_TOKEN_SECRET
+- ACCESS_TOKEN_SECRET
 - MONGODB_URI
+- SENDER_EMAIL_ADDRES
+- SENDER_PASSWORD
+- ENV
+

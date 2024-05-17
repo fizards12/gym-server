@@ -1,4 +1,4 @@
-import mongoose ,{ Model, Schema } from "mongoose";
+import mongoose, { Model, Schema } from "mongoose";
 import { EmailErrors, PasswordErrors, RoleErrors, UsernameErrors } from "../utils/errorTypes";
 import { uniquenessValidator } from "../utils/utils";
 import { Document } from "mongoose";
@@ -9,12 +9,13 @@ export interface UserInterface {
     password?: string,
     activated?: boolean,
     role?: string,
+    notifications?: Schema.Types.ObjectId[],
     member_id?: number,
 
 }
 export type UserKeys = keyof UserInterface;
 
-export interface UserDocument extends Document,UserInterface {};
+export interface UserDocument extends Document, UserInterface { };
 
 const userSchema = new Schema<UserDocument>({
     name: {
@@ -33,8 +34,8 @@ const userSchema = new Schema<UserDocument>({
         ],
         unique: true,
         validate: {
-            validator: async(username: string): Promise<boolean> => {
-                const isValid : boolean = await uniquenessValidator({username})
+            validator: async (username: string): Promise<boolean> => {
+                const isValid: boolean = await uniquenessValidator({ username })
                 return isValid;
             },
             message: UsernameErrors.UniquenessError
@@ -50,7 +51,7 @@ const userSchema = new Schema<UserDocument>({
                 if (!re.test(email)) {
                     return false;
                 }
-                const isValid: boolean = await uniquenessValidator({email});
+                const isValid: boolean = await uniquenessValidator({ email });
                 return isValid;
             },
             message: EmailErrors.InvalidValueError
@@ -60,7 +61,7 @@ const userSchema = new Schema<UserDocument>({
         type: String,
         required: [true, PasswordErrors.NotExistError],
     },
-    activated:{
+    activated: {
         type: Boolean,
         default: false
     },
@@ -73,6 +74,16 @@ const userSchema = new Schema<UserDocument>({
         required: true,
         unique: true,
         immutable: true
+    },
+    notifications: {
+        type: [{
+            read: Boolean,
+            id: {
+                type: Schema.ObjectId,
+                ref: "Notification"
+            }
+        }],
+        default: []
     }
 });
 
@@ -86,6 +97,6 @@ userSchema.set("toObject", {
     },
 });
 
-const User : Model<UserDocument> = mongoose.model<UserDocument>("User", userSchema) as Model<UserDocument>;
+const User: Model<UserDocument> = mongoose.model<UserDocument>("User", userSchema) as Model<UserDocument>;
 
 export default User;
