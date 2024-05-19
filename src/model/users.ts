@@ -9,7 +9,7 @@ export interface UserInterface {
     password?: string,
     activated?: boolean,
     role?: string,
-    notifications?: {read:boolean,id:Types.ObjectId}[],
+    notifications?: {read:boolean,notification:Types.ObjectId}[],
     member_id?: number,
 
 }
@@ -78,7 +78,7 @@ const userSchema = new Schema<UserDocument>({
     notifications: {
         type: [{
             read: Boolean,
-            _id: {
+            notification: {
                 type: Schema.ObjectId,
                 ref: "Notification"
             }

@@ -14,7 +14,7 @@ const saltRounds: number = +(process.env.SALTS_ROUNDS as unknown as number);
 
 export const getAll = async (req: CustomRequest, res: Response, next: NextFunction): Promise<Response | undefined> => {
     try {
-        const users = await User.find({}).populate("notifications");
+        const users = await User.find({}).populate("notifications.notification");
         if (req.accJWE) {
             return res.status(200).json({ users, token: req.accJWE });
         }
@@ -36,7 +36,7 @@ export const getUser = async (req: CustomRequest, res: Response, next: NextFunct
             }
         }
         const id = req.params.id
-        const user = await User.findOne({ member_id: id }).populate("notifications");
+        const user = await User.findOne({ member_id: id }).populate("notifications.notification");
         if (!user) {
             throw {
                 name: Errors.CREDENTIALS_ERROR,

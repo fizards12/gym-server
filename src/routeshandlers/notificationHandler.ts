@@ -40,7 +40,7 @@ const sendNotification: EventListener = (socket, io) => async (message: string, 
             try {
                 const usersIds = btch.map(user => user._id);
                 const updateResult = await User.updateMany({ _id: { $in: usersIds } },
-                    { $push: { notifications: { _id: newNotification._id, read: false } } });
+                    { $push: { notifications: { notification: newNotification._id, read: false } } });
                 console.log(`Batch updated: ${updateResult.modifiedCount} users`);
 
             } catch (err) {
@@ -62,7 +62,7 @@ const readListener: EventListener = (socket) => async (id) => {
         if (!isObjectIdOrHexString(id)) throw Errors.CREDENTIALS_ERROR
         const idObj = new Types.ObjectId(id);
         const updated = await User
-            .findOneAndUpdate({ member_id: socket.userId, "notifications._id": idObj },
+            .findOneAndUpdate({ member_id: socket.userId, "notifications.notification": idObj },
                 { $set: { "notifications.$.read": true } }, { new: true });
         if (!updated) {
             throw Errors.CREDENTIALS_ERROR;
