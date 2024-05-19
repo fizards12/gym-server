@@ -1,6 +1,6 @@
 import { Secret } from "jsonwebtoken";
 
-export const port = process.env.port as string;
+export const port = +(process.env.port as string) as number || 10000;
 export const refreshSecret = process.env.REFRESH_TOKEN_SECRET as Secret;
 export const accessSecret = process.env.ACCESS_TOKEN_SECRET as Secret;
 export const jweKey = process.env.JWE_KEY as string;
