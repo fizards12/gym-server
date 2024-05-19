@@ -1,11 +1,7 @@
-import { NextFunction } from "express";
 import { Socket } from "socket.io";
 import { Errors } from "../utils/errorTypes";
-import { decryptJWE, decryptToken, isTokenExpired, verifyToken } from "../utils/auth";
-import { jweKey } from "../utils/env";
-import { TOKEN_TYPES } from "../utils/constants";
+import {  decryptToken} from "../utils/auth";
 import { ExtendedError } from "socket.io/dist/namespace";
-import { getRefreshToken } from "../utils/cache";
 
 export interface NotificationSocket extends Socket {
     message?:string,

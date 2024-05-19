@@ -1,4 +1,3 @@
-import { JWE, JWK } from "node-jose";
 import User, { UserDocument, UserInterface } from "../model/users";
 import transporter from "./emailTransport";
 import { Errors } from "./errorTypes";

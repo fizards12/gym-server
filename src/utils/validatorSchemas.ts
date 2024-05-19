@@ -1,5 +1,5 @@
-import { CustomValidator, ParamSchema, Schema, body } from "express-validator";
-import User, { UserKeys } from "../model/users";
+import { ParamSchema, body } from "express-validator";
+import { UserKeys } from "../model/users";
 import { EmailErrors, NameErrors, PasswordErrors, RoleErrors, UsernameErrors } from "./errorTypes";
 
 const userValidatorSchema: Record<UserKeys, ParamSchema> = {

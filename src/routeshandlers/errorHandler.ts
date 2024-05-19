@@ -1,4 +1,4 @@
-import { ErrorRequestHandler, Request, Response } from "express";
+import { ErrorRequestHandler } from "express";
 import { Errors } from "../utils/errorTypes";
 import { TOKEN_TYPES } from "../utils/constants";
 

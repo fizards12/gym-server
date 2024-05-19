@@ -1,8 +1,8 @@
 import { NotificationSocket } from "../middleware/authSocket";
-import User, { UserDocument } from "../model/users";
+import User from "../model/users";
 import Notification from "../model/notifications";
 import { chunkArray } from "../utils/utils";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { Errors } from "../utils/errorTypes";
 import { Types, isObjectIdOrHexString } from "mongoose";
 
