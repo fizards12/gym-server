@@ -2,6 +2,7 @@ import { Model, Schema, Types, model } from "mongoose";
 
 
 export interface NotificationInterface {
+    id?:string,
     message: string,
     sender: Types.ObjectId
 }
@@ -14,7 +15,6 @@ const notifySchema = new Schema<NotifyDocument>({
     message: {
         type: String,
         required: [true, "Notification Message value is required"],
-        unique: true,
     },
     sender: {
         type: Schema.Types.ObjectId,

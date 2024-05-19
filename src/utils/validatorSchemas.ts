@@ -156,6 +156,16 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
             }
         },
     },
+    notifications: {
+        optional: true,
+        exists: {
+            negated: true,
+            errorMessage: "Enter Valid Credentials",
+            bail: {
+                level: "request"
+            }
+        },
+    },
     activated: {
         optional: true,
         exists: {
@@ -175,6 +185,7 @@ export const loginValidationSchema: Record<UserKeys,ParamSchema> = {
     username: {},
     activated: {},
     role: {},
+    notifications: {},
     member_id: {}
 }
 

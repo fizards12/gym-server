@@ -2,6 +2,8 @@ import jwt, { JwtPayload, Secret, SignOptions, VerifyOptions } from "jsonwebtoke
 import { Errors } from "./errorTypes";
 import { accessSecret, activateJweKey, activationSecret, jweKey, refreshSecret } from "./env";
 import { JWE, JWK } from "node-jose";
+import { TOKEN_TYPES } from "./constants";
+import { getRefreshToken } from "./cache";
 type Token = string;
 
 export interface TokenPayload extends JwtPayload {
@@ -11,21 +13,21 @@ export interface TokenPayload extends JwtPayload {
     role?: string;
 }
 
-type TokenType = "refresh" | "access" | "activate";
+type TokenType = TOKEN_TYPES.REFRESH | TOKEN_TYPES.ACCESS | TOKEN_TYPES.ACTIVATION;
 
 function tokenSecret(type: TokenType): Secret {
     let secret: Secret = "";
-    if (type === "refresh") secret = refreshSecret;
-    if (type === "access") secret = accessSecret;
-    if (type === "activate") secret = activationSecret;
+    if (type === TOKEN_TYPES.REFRESH) secret = refreshSecret;
+    if (type === TOKEN_TYPES.ACCESS) secret = accessSecret;
+    if (type === TOKEN_TYPES.ACTIVATION) secret = activationSecret;
     return secret;
 }
 
 function JWEKey(type: TokenType): string {
     let key: string = "";
-    if (type === "refresh") key = jweKey;
-    if (type === "access") key = jweKey;
-    if (type === "activate") key = activateJweKey;
+    if (type === TOKEN_TYPES.REFRESH) key = jweKey;
+    if (type === TOKEN_TYPES.ACCESS) key = jweKey;
+    if (type === TOKEN_TYPES.ACTIVATION) key = activateJweKey;
     return key;
 }
 
@@ -60,7 +62,7 @@ export const isTokenExpired = function (decoded: TokenPayload): boolean {
     return false;
 }
 
-export async function encryptJWT(token: string, key: string): Promise<string> {
+async function encryptJWT(token: string, key: string): Promise<string> {
     try {
         const base64Key = Buffer.from(key, "utf8").toString("base64")
         const encryptedKey = await JWK.asKey({ kty: 'oct', k: base64Key });
@@ -104,3 +106,25 @@ export const generateJWE = async (payload: TokenPayload, type: TokenType, option
     const jweToken = await encryptJWT(token, key);
     return jweToken;
 };
+
+export const decryptToken = (tokenJWE: string)=>new Promise<{payload:TokenPayload,token?:string}>(async(resolve,reject)=>{
+    const accessToken = await decryptJWE(tokenJWE,jweKey);
+        const payload = await verifyToken(accessToken,TOKEN_TYPES.ACCESS);
+        const refreshJWE = await getRefreshToken(+(payload.id as number));
+        if(!refreshJWE){
+            
+        }
+        if(isTokenExpired(payload)){
+            const refreshToken = await decryptJWE(refreshJWE as string,jweKey);
+            const refreshPayload = await verifyToken(refreshToken,TOKEN_TYPES.ACCESS);
+            if(isTokenExpired(refreshPayload)){
+                reject({name:Errors.TOKEN_EXPIRATION_ERROR,type:TOKEN_TYPES.REFRESH});
+            }
+            if(payload.id !== refreshPayload.id){
+                reject({name:Errors.INVALID_TOKEN_CREDENTIALS_ERROR,type:TOKEN_TYPES.ACCESS});
+            }
+            const newAccessJWE = await generateJWE({id:refreshPayload.id,email:refreshPayload.email,role:refreshPayload.role},TOKEN_TYPES.ACCESS);
+            return resolve({payload,token:newAccessJWE});
+        }
+        return resolve({payload});
+})

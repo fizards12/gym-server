@@ -103,4 +103,11 @@ export const sendMail = async (reciever: UserInterface, id: string) => {
     }
 }
 
-
+//split array to number of batches
+export const chunkArray = (array: UserDocument[], size: number): UserDocument[][] => {
+    const result: UserDocument[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+    }
+    return result;
+};

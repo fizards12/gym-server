@@ -1,4 +1,4 @@
-import mongoose, { Model, Schema } from "mongoose";
+import mongoose, { Model, Schema, Types } from "mongoose";
 import { EmailErrors, PasswordErrors, RoleErrors, UsernameErrors } from "../utils/errorTypes";
 import { uniquenessValidator } from "../utils/utils";
 import { Document } from "mongoose";
@@ -9,7 +9,7 @@ export interface UserInterface {
     password?: string,
     activated?: boolean,
     role?: string,
-    notifications?: Schema.Types.ObjectId[],
+    notifications?: {read:boolean,id:Types.ObjectId}[],
     member_id?: number,
 
 }
@@ -78,7 +78,7 @@ const userSchema = new Schema<UserDocument>({
     notifications: {
         type: [{
             read: Boolean,
-            id: {
+            _id: {
                 type: Schema.ObjectId,
                 ref: "Notification"
             }

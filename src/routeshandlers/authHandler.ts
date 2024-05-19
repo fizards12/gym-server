@@ -9,6 +9,7 @@ import Token from "../model/tokens";
 import { Types, isObjectIdOrHexString } from "mongoose";
 import { Errors } from "../utils/errorTypes";
 import { CustomRequest } from "../middleware/auth";
+import { cacheRefreshToken, deleteRefreshToken } from "../utils/cache";
 
 
 export const loginHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -63,6 +64,7 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
         // Save Refresh Token on a cookie-httpOnly attribute
         const expires = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
         res.cookie("en-rt", refreshJWE, { httpOnly: true, expires,secure: !!frontendURI || false});
+        await cacheRefreshToken(isUserExist.member_id as number,refreshJWE);
         return res.status(200).send({ token: accessJWE });
     } catch (error) {
         next(error);
@@ -190,8 +192,11 @@ export const logoutHandler : RequestHandler = async (req: CustomRequest,res,next
                 type: TOKEN_TYPES.ACCESS
             }
         }
-        const token = new Token({token: tokenJWE,state: "blocked"});
-        await token.save();
+        const accToken = new Token({token: tokenJWE,state: "blocked"});
+        const refToken = new Token({token: req.cookies["en-rt"],state: "blocked"});
+        await Token.insertMany([accToken,refToken]);
+        const userId = parseInt(req.params.id);
+        await deleteRefreshToken(userId);
         return res.clearCookie("en-rt").sendStatus(204);
         
     }catch(error){  

@@ -4,7 +4,7 @@ const router: Router = Router();
 router.post("/login", loginHandler);
 router.get("/auto", reAuthenticateHandler);
 router.get("/activate/:id", activateHandler);
-router.post("/logout",logoutHandler)
+router.post("/logout/:id",logoutHandler)
 
 
 export default router;

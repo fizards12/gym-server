@@ -6,7 +6,7 @@ export enum ADMIN_ROLES {
 }
 
 export enum EXPIRES_TIME {
-    HALF_HOUR = "1m",
+    HALF_HOUR = "30m",
     ONE_DAY = "1d",
     ONE_MONTH = "30d"
 }
