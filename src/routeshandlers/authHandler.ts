@@ -3,7 +3,7 @@ import { Result, validationResult } from "express-validator";
 import User, { UserDocument } from "../model/users";
 import bcrypt from "bcrypt";
 import { TokenPayload, decryptJWE, generateJWE, isTokenExpired, verifyToken } from "../utils/auth";
-import { activateJweKey, frontendURI, jweKey } from "../utils/env";
+import { activateJweKey, environment, frontendURI, jweKey } from "../utils/env";
 import { EXPIRES_TIME, TOKEN_TYPES } from "../utils/constants";
 import Token from "../model/tokens";
 import { Types, isObjectIdOrHexString } from "mongoose";
@@ -63,8 +63,8 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
 
         // Save Refresh Token on a cookie-httpOnly attribute
         const expires = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000);
-        res.cookie("en-rt", refreshJWE, { httpOnly: true, expires,secure: !!frontendURI || false});
-        await cacheRefreshToken(isUserExist.member_id as number,refreshJWE);
+        res.cookie("en-rt", refreshJWE, { httpOnly: true, expires, secure: (environment === "PROD") || false });
+        await cacheRefreshToken(isUserExist.member_id as number, refreshJWE);
         return res.status(200).send({ token: accessJWE });
     } catch (error) {
         next(error);
@@ -75,7 +75,7 @@ export const loginHandler = async (req: Request, res: Response, next: NextFuncti
 export const reAuthenticateHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const refreshJWE = req.cookies["en-rt"];
-        if(!refreshJWE){
+        if (!refreshJWE) {
             throw {
                 name: Errors.TOKEN_NOT_FOUND_ERROR,
                 type: TOKEN_TYPES.REFRESH
@@ -90,7 +90,7 @@ export const reAuthenticateHandler = async (req: Request, res: Response, next: N
                 type: TOKEN_TYPES.REFRESH
             }
         }
-        
+
         // Validate the user's credentials on the refresh token payload.. 
         const user: UserDocument = await User.findOne({ member_id: id, email }) as UserDocument;
         if (!user) {
@@ -119,14 +119,14 @@ export const activateHandler = async (req: Request, res: Response, next: NextFun
                     message: err.msg,
                 }
                 return error
-            }).mapped(); 
+            }).mapped();
             throw {
                 name: Errors.VALIDATION_ERROR,
                 errors
             }
         }
         const jweId = req.params.id;
-        if(!isObjectIdOrHexString(jweId)){
+        if (!isObjectIdOrHexString(jweId)) {
             throw {
                 name: Errors.INVALID_AUTH_HEADER,
                 type: TOKEN_TYPES.ACTIVATION
@@ -134,24 +134,24 @@ export const activateHandler = async (req: Request, res: Response, next: NextFun
         }
         const id = new Types.ObjectId(jweId)
         const tokenInDB = await Token.findById(id);
-        if(!tokenInDB){
+        if (!tokenInDB) {
             throw {
                 name: Errors.TOKEN_NOT_FOUND_ERROR,
                 type: TOKEN_TYPES.ACTIVATION
             }
         }
         const activationJWE = tokenInDB?.toObject().token;
-        const activationToken = await decryptJWE(activationJWE,activateJweKey);
-        const payload = await verifyToken(activationToken,TOKEN_TYPES.ACTIVATION);
-        if(isTokenExpired(payload)){
+        const activationToken = await decryptJWE(activationJWE, activateJweKey);
+        const payload = await verifyToken(activationToken, TOKEN_TYPES.ACTIVATION);
+        if (isTokenExpired(payload)) {
             throw {
                 name: Errors.TOKEN_EXPIRATION_ERROR,
                 type: TOKEN_TYPES.ACTIVATION
             }
         }
-        const user = await User.findOneAndUpdate({member_id:payload.id},{activated:true},{new: true});
+        const user = await User.findOneAndUpdate({ member_id: payload.id }, { activated: true }, { new: true });
         await tokenInDB.deleteOne();
-        if(!user){
+        if (!user) {
             throw {
                 name: Errors.INVALID_TOKEN_CREDENTIALS_ERROR,
                 type: TOKEN_TYPES.ACTIVATION
@@ -163,8 +163,8 @@ export const activateHandler = async (req: Request, res: Response, next: NextFun
     }
 }
 
-export const logoutHandler : RequestHandler = async (req: CustomRequest,res,next)=>{
-    try{
+export const logoutHandler: RequestHandler = async (req: CustomRequest, res, next) => {
+    try {
         const result: Result = validationResult(req);
         if (!result.isEmpty()) {
             const errors = result.formatWith(err => {
@@ -174,7 +174,7 @@ export const logoutHandler : RequestHandler = async (req: CustomRequest,res,next
                 }
                 return error
             }).mapped();
-            if(errors["authorization"]?.message){
+            if (errors["authorization"]?.message) {
                 throw {
                     name: Errors.INVALID_AUTH_HEADER,
                     type: TOKEN_TYPES.ACCESS
@@ -186,20 +186,20 @@ export const logoutHandler : RequestHandler = async (req: CustomRequest,res,next
             }
         }
         const tokenJWE = req.headers.authorization?.split(" ")[1];
-        if(!tokenJWE){
+        if (!tokenJWE) {
             throw {
                 name: Errors.INVALID_AUTH_HEADER,
                 type: TOKEN_TYPES.ACCESS
             }
         }
-        const accToken = new Token({token: tokenJWE,state: "blocked"});
-        const refToken = new Token({token: req.cookies["en-rt"],state: "blocked"});
-        await Token.insertMany([accToken,refToken]);
+        const accToken = new Token({ token: tokenJWE, state: "blocked" });
+        const refToken = new Token({ token: req.cookies["en-rt"], state: "blocked" });
+        await Token.insertMany([accToken, refToken]);
         const userId = parseInt(req.params.id);
         await deleteRefreshToken(userId);
         return res.clearCookie("en-rt").sendStatus(204);
-        
-    }catch(error){  
+
+    } catch (error) {
         next(error);
     }
 }
