@@ -2,6 +2,9 @@
 
 This is the backend server for a gym application built using Express.js. The server provides APIs to handle user data, user registration, authentication, authorization, and notifications.
 
+- Server deployed on Render
+    - URL: [Gym server](https://gym-server-qdnf.onrender.com)
+
 ## Features
 
 ### User Data Management
