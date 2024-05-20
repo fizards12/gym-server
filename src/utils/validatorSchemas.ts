@@ -58,7 +58,7 @@ const userValidatorSchema: Record<UserKeys, ParamSchema> = {
         isLength: {
             options: {
                 min: 6,
-                max: 50
+                max: 20
             },
             if: body("username").exists().trim().notEmpty(),
             errorMessage: UsernameErrors.LengthError,
