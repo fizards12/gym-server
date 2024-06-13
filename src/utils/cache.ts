@@ -6,7 +6,7 @@ export const client = createClient({
     password: redisPassword,
     socket: {
         host: redisURI,
-        port: 11708,
+        port: 17374,
         timeout:6000 
     }
 });
