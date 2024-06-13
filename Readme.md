@@ -4,7 +4,7 @@ This is the backend server for a gym application built using Express.js. The ser
 
 - Server deployed on Render
     - URL: [Gym server](https://gym-server-qdnf.onrender.com)
-    - Base URI: URL/api/**(endpoint-route)**
+    - Base URI: **(URL)**/api/**(endpoint-route)**
 
 ## Features
 
