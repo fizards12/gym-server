@@ -85,11 +85,11 @@ export const authMiddleware = (roles: string[]): AuthMiddleware => async functio
                 name: Errors.SCOPE_ERROR
             }
         }
-        if (!user.activated) {
-            throw {
-                name: Errors.ACC_ACTIVATION_ERROR
-            }
-        }
+        // if (!user.activated) {
+        //     throw {
+        //         name: Errors.ACC_ACTIVATION_ERROR
+        //     }
+        // }
         req.user = user;
         next();
         return;
